@@ -48,8 +48,28 @@ describe('Drivers Controller', () => {
               assert (driver === null);
               done();
             });
+          });
     });
   });
-});
 
+  it('Index /api/drivers finds drivers in location', done => {
+    const dA = new Driver({email: 'a@db.com',
+      available:true,
+      geometry: {type: 'Point', coordinates: [-122.4759902, 47.6147628]}});
+
+    const dB = new Driver({email: 'b@db.com',
+      available: true,
+      geometry: {type: 'Point', coordinates: [-80.253, 25.791]}});
+
+    Promise.all([dA.save(), dB.save()])
+      .then(() => {
+        request(app)
+          .get('/api/drivers?lng=-80&lat=25')
+          .end((err, response) => {
+            assert(response.body.length === 1);
+            assert(response.body[0].obj.email === 'b@db.com');
+            done();
+          })
+      })
+  });
 });
